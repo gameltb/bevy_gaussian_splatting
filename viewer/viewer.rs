@@ -302,7 +302,7 @@ pub fn press_esc_close(
     mut exit: EventWriter<AppExit>
 ) {
     if keys.just_pressed(KeyCode::Escape) {
-        exit.send(AppExit);
+        exit.send(AppExit::Success);
     }
 }
 
@@ -345,7 +345,7 @@ fn fps_display_setup(
             TextSection::from_style(TextStyle {
                 font: asset_server.load("fonts/Caveat-Medium.ttf"),
                 font_size: 60.0,
-                color: Color::GOLD,
+                color: Color::WHITE,
             }),
         ]).with_style(Style {
             position_type: PositionType::Absolute,
