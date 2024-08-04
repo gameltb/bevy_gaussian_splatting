@@ -29,6 +29,7 @@ mod frame_capture {
         use bevy::render::render_asset::RenderAssets;
         use bevy::render::render_graph::{self, NodeRunError, RenderGraph, RenderGraphContext, RenderLabel};
         use bevy::render::renderer::{RenderContext, RenderDevice, RenderQueue};
+        use bevy::render::texture::GpuImage;
         use bevy::render::{Extract, RenderApp};
 
         use bevy::render::render_resource::{
@@ -85,7 +86,7 @@ mod frame_capture {
 
                 render_app.add_systems(ExtractSchedule, image_copy_extract);
 
-                let mut graph = render_app.world.get_resource_mut::<RenderGraph>().unwrap();
+                let mut graph = render_app.world_mut().get_resource_mut::<RenderGraph>().unwrap();
 
                 graph.add_node(ImageCopyLabel, ImageCopyDriver);
 
@@ -154,7 +155,8 @@ mod frame_capture {
                 world: &World,
             ) -> Result<(), NodeRunError> {
                 let image_copiers = world.get_resource::<ImageCopiers>().unwrap();
-                let gpu_images = world.get_resource::<RenderAssets<Image>>().unwrap();
+                let gpu_images = world.get_resource::<RenderAssets<GpuImage>>().unwrap();
+
 
                 for image_copier in image_copiers.iter() {
                     if !image_copier.enabled() {
@@ -214,6 +216,7 @@ mod frame_capture {
             prelude::*,
             render::{camera::RenderTarget, renderer::RenderDevice},
         };
+        use uuid::Uuid;
         use wgpu::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
 
         use super::image_copy::ImageCopier;
@@ -345,14 +348,14 @@ mod frame_capture {
                             PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("headless_output");
                         std::fs::create_dir_all(&images_dir).unwrap();
 
-                        let uuid = bevy::utils::Uuid::new_v4();
+                        let uuid = Uuid::new_v4();
                         let image_path = images_dir.join(format!("{uuid}.png"));
                         if let Err(e) = img.save(image_path){
                             panic!("Failed to save image: {}", e);
                         };
                     }
                     if scene_controller.single_image {
-                        app_exit_writer.send(AppExit);
+                        app_exit_writer.send(AppExit::Success);
                     }
                 } else {
                     scene_controller.state = SceneState::Render(n - 1);
